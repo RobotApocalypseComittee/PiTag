@@ -30,6 +30,10 @@ String playerId = ""
 String teamName = "blue";
 
 
+void notifyPointScored(String attackerId) {
+  webSocket.sendTXT("pointscore:"+attackerId+","+playerId);
+}
+
 // Handle WebSocket Event
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
 
@@ -42,21 +46,17 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
             {
                 Serial.printf("[WSc] Connected to url: %s\n",  payload);
                 // send message to server when Connected
-                webSocket.sendTXT("addplayer,"+ID+","+"blue");
+                webSocket.sendTXT("addplayer:"+ID+","+"blue");
             }
             break;
         case WStype_TEXT:
             Serial.printf("[WSc] get text: %s\n", payload);
+            if (payload == "gameover") {
+              strip.setPixel(0, 255, 255, 255);
+            }
 
       // send message to server
       // webSocket.sendTXT("message here");
-            break;
-        case WStype_BIN:
-            Serial.printf("[WSc] get binary lenght: %u\n", lenght);
-            hexdump(payload, lenght);
-
-            // send data to server
-            // webSocket.sendBIN(payload, lenght);
             break;
     }
 
@@ -79,7 +79,7 @@ void setup() {
           delay(1000);
       }
 
-    WiFiMulti.addAP("SSID", "passpasspass");
+    WiFiMulti.addAP("PITAG", "letmein");
 
     //WiFi.disconnect();
     while(WiFiMulti.run() != WL_CONNECTED) {
