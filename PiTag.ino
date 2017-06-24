@@ -1,7 +1,9 @@
 /*
- * WebSocketClient.ino
+ *  PiTag.ino
  *
- *  Created on: 24.05.2015
+ *  Created on: 23.06.17
+ *  
+ *  The PiTag System
  *
  */
 
@@ -11,13 +13,24 @@
 #include <ESP8266WiFiMulti.h>
 
 #include <WebSocketsClient.h>
+#include <Adafruit_NeoPixel.h>
+
 
 #include <Hash.h>
+
+const uint8_t LEDPIN = D0;
+const String TEAMNAME = "blue";
+const uint32_t LEDCOLOUR = 0x00FF00;
+const String ID;
 
 ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
+String playerId = ""
+String teamName = "blue";
 
+
+// Handle WebSocket Event
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
 
 
@@ -28,9 +41,8 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
         case WStype_CONNECTED:
             {
                 Serial.printf("[WSc] Connected to url: %s\n",  payload);
-        
-          // send message to server when Connected
-        webSocket.sendTXT("Connected");
+                // send message to server when Connected
+                webSocket.sendTXT("addplayer,"+ID+","+"blue");
             }
             break;
         case WStype_TEXT:
@@ -49,7 +61,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
     }
 
 }
-
+// Do beginning Stuffs
 void setup() {
     // Serial.begin(921600);
     Serial.begin(9600);
