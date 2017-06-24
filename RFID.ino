@@ -17,14 +17,9 @@ void setup() {
         }
 
 }
-
-
-int block=2;//this is the block number we will write into and then read. Do not write into 'sector trailer' block, since this can make the block unusable.
-
-byte blockcontent[16] = {"Friendly_Tea____"};//an array with 16 bytes to be written into one of the 64 card blocks is defined
-byte clearblockcontent[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//all zeros. This can be used to delete a block.
-byte readbackblock[18];//This array is used for reading out a block. The MIFARE_Read method requires a buffer that is at least 18 bytes to hold the 16 bytes of a block.
 String tagName;
+String passKey;
+
 
 void loop() {
   // Look for new cards
@@ -39,23 +34,25 @@ void loop() {
     return;
   }
 
-  // Dump debug info about the card. PICC_HaltA() is automatically called.
-  //mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
-
   Serial.println("card selected");
  
   Serial.print(F("Card UID:"));
-  dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
+  checkCard(mfrc522.uid.uidByte, mfrc522.uid.size);
   Serial.println();
   digitalWrite(13, HIGH);
   
 }
 
-void dump_byte_array(byte *buffer, byte bufferSize) {
+void checkCard(byte *buffer, byte bufferSize) {
   for (byte i = 0; i < bufferSize; i++) {
     //Serial.print(buffer[i] < 0x10 ? " 0" : " ");
     Serial.print(buffer[i], HEX);
     tagName.concat(String(buffer[i], HEX));
+  }
+
+  if (tagName == passKey) {
+    losePoint();
+  }
   }
   Serial.println();
   Serial.println(tagName);
