@@ -24,7 +24,7 @@ int block=2;//this is the block number we will write into and then read. Do not 
 byte blockcontent[16] = {"Friendly_Tea____"};//an array with 16 bytes to be written into one of the 64 card blocks is defined
 byte clearblockcontent[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//all zeros. This can be used to delete a block.
 byte readbackblock[18];//This array is used for reading out a block. The MIFARE_Read method requires a buffer that is at least 18 bytes to hold the 16 bytes of a block.
-
+String tagName;
 
 void loop() {
   // Look for new cards
@@ -43,24 +43,7 @@ void loop() {
   //mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
 
   Serial.println("card selected");
- /*
-  writeBlock(block, blockcontent);
-
-  readBlock(block, readbackblock);//read the block back
-         Serial.print("read block: ");
-         char temp;
-         for (int j=0 ; j<16 ; j++)//print the block contents
-         {
-           Serial.write (readbackblock[j]);//Serial.write() transmits the ASCII numbers as human readable characters to serial monitor
-           temp += readbackblock[j];
-         }
-         Serial.println("");
-
-         if (temp == "Friendly_Tea____") {
-            Serial.println("Tagged!");
-         }
-         Serial.println(temp);
-         */
+ 
   Serial.print(F("Card UID:"));
   dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
   Serial.println();
@@ -70,7 +53,11 @@ void loop() {
 
 void dump_byte_array(byte *buffer, byte bufferSize) {
   for (byte i = 0; i < bufferSize; i++) {
-    Serial.print(buffer[i] < 0x10 ? " 0" : " ");
+    //Serial.print(buffer[i] < 0x10 ? " 0" : " ");
     Serial.print(buffer[i], HEX);
+    tagName.concat(String(buffer[i], HEX));
   }
+  Serial.println();
+  Serial.println(tagName);
+  tagName = "";
 }
