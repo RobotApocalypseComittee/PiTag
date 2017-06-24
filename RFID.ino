@@ -21,7 +21,7 @@ String tagName;
 String passKey;
 
 
-void loop() {
+void scanCard() {
   // Look for new cards
   if ( ! mfrc522.PICC_IsNewCardPresent()) {
     digitalWrite(13, LOW);
@@ -53,7 +53,7 @@ void checkCard(byte *buffer, byte bufferSize) {
   if (tagName == passKey) {
     losePoint();
   }
-  }
+  
   Serial.println();
   Serial.println(tagName);
   tagName = "";
