@@ -15,23 +15,32 @@
 #include <WebSocketsClient.h>
 #include <Adafruit_NeoPixel.h>
 
+#include <SPI.h>
+#include <MFRC522.h>
+
+#define SS_PIN 4
+#define RST_PIN 5
+MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance.       // instatiate a MFRC522 reader object.
+MFRC522::MIFARE_Key key;
+
 
 #include <Hash.h>
 
 const uint8_t LEDPIN = D0;
 const String TEAMNAME = "blue";
 const uint32_t LEDCOLOUR = 0x00FF00;
-const String ID;
+const String ID = "noot";
+String tagName;
+
+Adafruit_NeoPixel strip;
 
 ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 
-String playerId = ""
-String teamName = "blue";
 
 
 void notifyPointScored(String attackerId) {
-  webSocket.sendTXT("pointscore:"+attackerId+","+playerId);
+  webSocket.sendTXT("pointscore:"+attackerId+","+ID);
 }
 
 // Handle WebSocket Event
@@ -51,8 +60,9 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t lenght) {
             break;
         case WStype_TEXT:
             Serial.printf("[WSc] get text: %s\n", payload);
-            if (payload == "gameover") {
-              strip.setPixel(0, 255, 255, 255);
+            
+            if ((char *)payload == "gameover") {
+              strip.setPixelColor(0, 255, 255, 255);
             }
 
       // send message to server
@@ -66,8 +76,19 @@ void setup() {
     // Serial.begin(921600);
     Serial.begin(9600);
 
+    Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, LEDPIN, NEO_RGB + NEO_KHZ800);
+    strip.begin();
+    strip.setPixelColor(0, 0, 0, 255);
+    strip.show(); // Initialize all pixels to 'off'
+
+    pinMode(BUILTIN_LED, OUTPUT);
+
     //Serial.setDebugOutput(true);
     Serial.setDebugOutput(true);
+
+    // RFID
+    SPI.begin();      // Init SPI bus
+    mfrc522.PCD_Init(); // Init MFRC522 card
 
     Serial.println();
     Serial.println();
@@ -79,20 +100,60 @@ void setup() {
           delay(1000);
       }
 
-    WiFiMulti.addAP("PITAG", "letmein");
+    WiFiMulti.addAP("PITAG", "letmeinnow");
 
     //WiFi.disconnect();
     while(WiFiMulti.run() != WL_CONNECTED) {
         delay(100);
     }
 
-    webSocket.begin("192.168.0.123", 81);
+    webSocket.begin("172.24.1.1", 8080);
     //webSocket.setAuthorization("user", "Password"); // HTTP Basic Authorization
     webSocket.onEvent(webSocketEvent);
 
 }
 
-void loop() {
-    webSocket.loop();
+bool scanCard() {
+  // Look for new cards
+  if ( ! mfrc522.PICC_IsNewCardPresent()) {
+    digitalWrite(BUILTIN_LED, LOW);
+    return false;
+  }
+
+  // Select one of the cards
+  if ( ! mfrc522.PICC_ReadCardSerial()) {
+    digitalWrite(BUILTIN_LED, LOW);
+    return false;
+  }
+
+ 
+  Serial.print(F("Card UID:"));
+  checkCard(mfrc522.uid.uidByte, mfrc522.uid.size);
+  Serial.println();
+  digitalWrite(BUILTIN_LED, HIGH);
+  return true;
+  
 }
+
+void checkCard(byte *buffer, byte bufferSize) {
+  for (byte i = 0; i < bufferSize; i++) {
+    //Serial.print(buffer[i] < 0x10 ? " 0" : " ");
+    Serial.print(buffer[i], HEX);
+    tagName.concat(String(buffer[i], HEX));
+  }
+
+  notifyPointScored(tagName);
+  tagName = "";
+}
+
+void loop() {
+  if (scanCard()) {
+    for (int i; i<100;i++) {
+      delay(100);
+      webSocket.loop();
+    }
+  }
+  webSocket.loop();
+}
+
 
