@@ -2,7 +2,7 @@
 The PiTag project.
 
 ### What is this?
-This is a project we designed for the PIoneers, Make It Outdoors competition, which augements games like tag, and 40-40, with cool electronics and flashy, colourful lights. This repo houses the code for each individual arduino-like esp board(nodemcu), which are attached to each bib.
+This is a project we designed for the PIoneers, Make It Outdoors competition, which augments games like tag, and 40-40, with cool electronics and flashy, colourful lights. This repo houses the code for each individual arduino-like esp board(nodemcu), which are attached to each bib.
 
 ### Warning
 #### We have found the electronics to be *very* dodgy, so be warned that you may do also. We found that not connecting the MRFC's RST pin helped, so the reset button on the NodeMCU will *not* work.
